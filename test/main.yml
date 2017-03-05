@@ -6,3 +6,4 @@
   tasks:
     - name: Verify pacaur has been installed
       command: /usr/bin/which pacaur
+      changed_when: False

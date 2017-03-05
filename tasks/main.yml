@@ -12,6 +12,7 @@
   command: /usr/bin/which pacaur
   register: which_pacaur
   ignore_errors: True
+  changed_when: which_pacaur|failed
 
 - name: Install pacman packages for pacaur
   pacman:
