@@ -1,0 +1,8 @@
+---
+- name: Install pacaur
+  hosts: localhost
+  roles:
+    - role: aur
+  tasks:
+    - name: Verify pacaur has been installed
+      command: /usr/bin/which pacaur

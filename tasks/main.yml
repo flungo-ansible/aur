@@ -1,0 +1,57 @@
+---
+- name: Include pacaur variables
+  include_vars: pacaur.yml
+
+- name: Ensure that which is installed
+  pacman:
+    name: which
+    state: present
+  become: yes
+
+- name: Check if pacaur is installed
+  command: /usr/bin/which pacaur
+  register: which_pacaur
+  ignore_errors: True
+
+- name: Install pacman packages for pacaur
+  pacman:
+    name: '{{ item }}'
+    state: present
+  become: yes
+  with_items: '{{ pacaur_pacman_dependencies }}'
+
+- name: Create a temporary directory for AUR packages
+  command: /usr/bin/mktemp -d "/tmp/ansible.aur.XXXX"
+  register: tempdir_aur
+  when: which_pacaur|failed
+
+- name: Add required GPG keys
+  command: /usr/bin/gpg --keyserver {{ item.keyserver|quote }} --recv-keys {{ item.key|quote }}
+  with_items: '{{ pacaur_gpg_keys }}'
+  when: which_pacaur|failed
+
+- name: Download AUR packages for pacaur
+  git:
+    repo: 'https://aur.archlinux.org/{{ item }}.git'
+    dest: '{{ tempdir_aur.stdout }}/{{ item }}'
+  with_items: '{{ pacaur_aur_dependencies }}'
+  when: which_pacaur|failed
+
+- name: Install AUR packages for pacaur
+  command: /usr/bin/makepkg --syncdeps --install --noconfirm
+  args:
+    chdir: '{{ tempdir_aur.stdout }}/{{ item }}'
+  with_items: '{{ pacaur_aur_dependencies }}'
+  when: which_pacaur|failed
+
+- name: Remove temporary directory for AUR packages
+  file:
+    path: '{{ tempdir_aur.stdout }}'
+    state: absent
+  when: which_pacaur|failed
+
+- name: Update pacaur
+  aur:
+    name: '{{ item }}'
+  with_items: '{{ pacaur_aur_dependencies }}'
+  when: which_pacaur|succeeded

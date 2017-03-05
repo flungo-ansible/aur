@@ -1,0 +1,10 @@
+---
+pacaur_pacman_dependencies:
+  - base-devel
+  - git
+pacaur_aur_dependencies:
+  - cower
+  - pacaur
+pacaur_gpg_keys:
+  - keyserver: hkp://pool.sks-keyservers.net
+    key: 487EACC08557AD082088DABA1EB2638FF56C0C53
