@@ -1,0 +1,28 @@
+stages:
+  - verify
+  - test
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+.ansible-test: &test
+  stage: test
+  image: flungo/ansible-test:archlinux
+
+syntax-check:
+  <<: *test
+  stage: verify
+  script:
+    - ansible test/main.yml --syntax-check
+
+test:
+  <<: *test
+  script:
+    - ansible test/main.yml
+
+test-idempotence:
+  <<: *test
+  script:
+    - ansible test/main.yml
+    - ansible test/main.yml | tee ansible.out
+    - tail -2 ansible.out | grep -q '^localhost.*changed=0\s*unreachable=0\s*failed=0\s*$'
